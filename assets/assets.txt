@@ -1,0 +1,6 @@
+fonts/arial.ttf
+libgdx.png
+music/test_sound.mp3
+sprites/play_button.png
+sprites/quit_button.png
+sprites/settings_button.png

@@ -1,2 +1,1 @@
-# The-Untitled-Fantasy-Game
-idk just veri bad gaem
+I wanted to create a fantasy game but im too stupid and dont know anythibg about programming, so sorry for bad quality lol
