@@ -3,6 +3,7 @@ package io.github.TheUntitledFantasyGame;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -27,6 +28,7 @@ public class Main extends Game {
     private FreeTypeFontParameter parameter;
     private ScreenTransition transition;
     private Screen nextScreen;
+    private Music backgroundMusic; // Добавляем переменную для фоновой музыки
 
     @Override
     public void create() {
@@ -34,6 +36,9 @@ public class Main extends Game {
 
         batch = new SpriteBatch();
         transition = new ScreenTransition(1.0f); // 1 секунда на переход
+
+        // Загрузка и настройка фоновой музыки
+        loadBackgroundMusic();
 
         // Настройка skin
         skin = new Skin();
@@ -51,7 +56,7 @@ public class Main extends Game {
         skin.add("settings_button_baton", new Texture("sprites/settings_button.png"));
         skin.add("quit_button_baton", new Texture("sprites/quit_button.png"));
 
-        // Создание кнопок
+        // Создание кнопок (о велики плэ бутон батон)
         play_button = createButton("play_button_baton");
         settings_button = createButton("settings_button_baton");
         quit_button = createButton("quit_button_baton");
@@ -100,6 +105,23 @@ public class Main extends Game {
 
         // Добавляем таблицу на stage
         stage.addActor(table);
+    }
+
+    // Метод для загрузки и настройки фоновой музыки
+    private void loadBackgroundMusic() {
+        try {
+            // Загружаем музыку из файла
+            backgroundMusic = Gdx.audio.newMusic(Gdx.files.internal("music/test_sound.mp3"));
+
+            // Настраиваем музыку для непрерывного воспроизведения
+            backgroundMusic.setLooping(true);
+            backgroundMusic.setVolume(0.5f); // Громкость от 0 до 1
+
+            // Запускаем воспроизведение
+            backgroundMusic.play();
+        } catch (Exception e) {
+            System.err.println("Не удалось загрузить фоновую музыку: " + e.getMessage());
+        }
     }
 
     // Метод для начала перехода на игровой экран
@@ -200,11 +222,42 @@ public class Main extends Game {
         if (getScreen() != null) {
             getScreen().dispose();
         }
+
+        // Освобождаем ресурсы аудио
+        if (backgroundMusic != null) {
+            backgroundMusic.dispose();
+        }
+
         stage.dispose();
         skin.dispose();
         batch.dispose();
         generator.dispose();
         transition.dispose();
+    }
+
+    // Методы для управления музыкой в настройках
+    public void setMusicVolume(float volume) {
+        if (backgroundMusic != null) {
+            backgroundMusic.setVolume(volume);
+        }
+    }
+
+    public float getMusicVolume() {
+        return backgroundMusic != null ? backgroundMusic.getVolume() : 0f;
+    }
+
+    public void toggleMusic(boolean enabled) {
+        if (backgroundMusic != null) {
+            if (enabled) {
+                backgroundMusic.play();
+            } else {
+                backgroundMusic.pause();
+            }
+        }
+    }
+
+    public boolean isMusicPlaying() {
+        return backgroundMusic != null && backgroundMusic.isPlaying();
     }
 
     public SpriteBatch getBatch() {
@@ -233,4 +286,3 @@ public class Main extends Game {
         return new TextButton("", style);
     }
 }
-
