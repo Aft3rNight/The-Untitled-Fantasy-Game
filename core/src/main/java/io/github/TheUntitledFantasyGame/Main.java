@@ -29,6 +29,7 @@ public class Main extends Game {
     private ScreenTransition transition;
     private Screen nextScreen;
     private Music backgroundMusic; // Добавляем переменную для фоновой музыки
+    private BitmapFont font; // выносим шрифт на уровень класса
 
     @Override
     public void create() {
@@ -48,7 +49,7 @@ public class Main extends Game {
         parameter = new FreeTypeFontParameter();
         parameter.size = 20;
         parameter.characters = FreeTypeFontGenerator.DEFAULT_CHARS + "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя";
-        BitmapFont font = generator.generateFont(parameter);
+        font = generator.generateFont(parameter);
         skin.add("default-font", font);
 
         // Добавляем текстуры кнопок
@@ -56,14 +57,14 @@ public class Main extends Game {
         skin.add("settings_button_baton", new Texture("sprites/settings_button.png"));
         skin.add("quit_button_baton", new Texture("sprites/quit_button.png"));
 
-        // Создание кнопок (о велики плэ бутон батон)
+        // Создание кнопок
         play_button = createButton("play_button_baton");
         settings_button = createButton("settings_button_baton");
         quit_button = createButton("quit_button_baton");
 
         // Настройка обработчиков событий для кнопок
 
-        // Кнопка Play - переход на выбор сейва (не бибу как буду сейвы делать)
+        // Кнопка Play - переход на выбор сейва
         play_button.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -91,6 +92,17 @@ public class Main extends Game {
         });
 
         // Настройка Stage
+        resetStage();
+    }
+
+    // Метод для пересоздания stage и его элементов
+    public void resetStage() {
+        // Если существующий stage есть, то освобождаем его
+        if (stage != null) {
+            stage.dispose();
+        }
+
+        // Создаем новый stage
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
 
@@ -178,10 +190,13 @@ public class Main extends Game {
         transition.start(ScreenTransition.TransitionType.FADE_OUT, () -> {
             // После затемнения переключаем на меню
             setScreen(null);
-            // Восстанавливаем обработчик ввода для меню
-            Gdx.input.setInputProcessor(stage);
+
+            // Пересоздаем stage и его компоненты
+            resetStage();
+
             // Разблокируем кнопки меню
             enableMenuButtons();
+
             // Начинаем осветление
             transition.start(ScreenTransition.TransitionType.FADE_IN, null);
         });
@@ -218,7 +233,7 @@ public class Main extends Game {
 
     @Override
     public void dispose() {
-        // Освобождаем ресурсы блеблебле
+        // Освобождаем ресурсы
         if (getScreen() != null) {
             getScreen().dispose();
         }
@@ -232,6 +247,7 @@ public class Main extends Game {
         skin.dispose();
         batch.dispose();
         generator.dispose();
+        font.dispose();
         transition.dispose();
     }
 
@@ -269,7 +285,7 @@ public class Main extends Game {
     }
 
     public BitmapFont getFont() {
-        return skin.getFont("default-font");
+        return font;
     }
 
     public ScreenTransition getTransition() {
