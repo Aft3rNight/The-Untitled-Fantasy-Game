@@ -1,7 +1,6 @@
 package io.github.TheUntitledFantasyGame;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
@@ -13,8 +12,8 @@ public class ScreenTransition {
         FADE_OUT  // Затемнение (в черный)
     }
 
-    private ShapeRenderer shapeRenderer;
-    private float duration;     // Длительность перехода в секундах
+    private final ShapeRenderer shapeRenderer;
+    private final float duration;     // Длительность перехода в секундах
     private float timer;        // Текущее время
     private TransitionType type;
     private boolean isActive;
@@ -62,14 +61,14 @@ public class ScreenTransition {
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         shapeRenderer.setColor(0, 0, 0, alpha);
-        shapeRenderer.rect(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        shapeRenderer.rect(0,0,Gdx.graphics.getWidth() * 16, Gdx.graphics.getHeight() * 16);
         shapeRenderer.end();
 
         Gdx.gl.glDisable(GL20.GL_BLEND);
     }
 
     public boolean isActive() {
-        return isActive;
+        return !isActive;
     }
 
     public void dispose() {

@@ -10,15 +10,15 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 public class GameScreen implements Screen {
-    private final Main game;
-    private OrthographicCamera camera;
-    private SpriteBatch batch;
-    private BitmapFont font;
+    private final Menu game;
+    private final OrthographicCamera camera;
+    private final SpriteBatch batch;
+    private final BitmapFont font;
     private boolean transitionCompleted = false;
     private float transitionTimer = 0f;
     private static final float TRANSITION_TIMEOUT = 2.0f;
 
-    public GameScreen(Main game) {
+    public GameScreen(Menu game) {
         this.game = game;
         batch = game.getBatch();
         font = game.getFont();
@@ -32,7 +32,7 @@ public class GameScreen implements Screen {
         Gdx.input.setInputProcessor(new InputAdapter() {
             @Override
             public boolean keyDown(int keycode) {
-                if (keycode == Input.Keys.ESCAPE && transitionCompleted && !game.getTransition().isActive()) {
+                if (keycode == Input.Keys.ESCAPE && transitionCompleted && game.getTransition().isActive()) {
                     System.out.println("ESC pressed - returning to menu");
                     game.returnToMenu();
                     return true;
@@ -57,7 +57,7 @@ public class GameScreen implements Screen {
 
         // Проверка завершения анимации без потока
         if (!transitionCompleted) {
-            if (!game.getTransition().isActive()) {
+            if (game.getTransition().isActive()) {
                 transitionCompleted = true;
                 System.out.println("Transition completed, ESC now active");
             } else {

@@ -13,8 +13,8 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 public class SettingsScreen implements Screen {
-    private final Main game;
-    private Stage stage;
+    private final Menu game;
+    private final Stage stage;
     private Skin skin;
     private float volume;
     private String currentResolution;
@@ -24,7 +24,7 @@ public class SettingsScreen implements Screen {
     // Возможные варианты разрешения
     private final String[] resolutions = {"1280x720", "1366x768", "1600x900", "1920x1080", "2560x1440", "3840x2160"};
 
-    public SettingsScreen(Main game) {
+    public SettingsScreen(Menu game) {
         this.game = game;
 
         // Получаем текущие настройки из Main
@@ -85,7 +85,7 @@ public class SettingsScreen implements Screen {
         });
 
         // Добавляем флажок для полноэкранного режима
-        final CheckBox fullscreenCheckbox = new CheckBox(" Полноэкранный режим", skin);
+        final CheckBox fullscreenCheckbox = new CheckBox("Полноэкранный режим(разрешение не меняется, если включено)", skin);
         fullscreenCheckbox.setChecked(isFullscreen);
 
         // Обработчик изменения полноэкранного режима
@@ -202,21 +202,7 @@ public class SettingsScreen implements Screen {
             game.setMusicVolume(volume);
             game.toggleMusic(musicEnabled);
 
-            boolean needsReset = false;
-
-            // Проверяем нужно ли менять разрешение или режим экрана
-            if (isFullscreen != Gdx.graphics.isFullscreen()) {
-                needsReset = true;
-            } else if (!isFullscreen) {
-                // Если не в полноэкранном режиме, проверяем изменилось ли разрешение
-                String[] dimensions = currentResolution.split("x");
-                int width = Integer.parseInt(dimensions[0]);
-                int height = Integer.parseInt(dimensions[1]);
-
-                if (width != Gdx.graphics.getWidth() || height != Gdx.graphics.getHeight()) {
-                    needsReset = true;
-                }
-            }
+            boolean needsReset = isNeedsReset();
 
             // Применяем изменения если они нужны
             if (needsReset) {
@@ -243,6 +229,25 @@ public class SettingsScreen implements Screen {
             System.err.println("Ошибка при применении настроек: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    private boolean isNeedsReset() {
+        boolean needsReset = false;
+
+        // Проверяем нужно ли менять разрешение или режим экрана
+        if (isFullscreen != Gdx.graphics.isFullscreen()) {
+            needsReset = true;
+        } else if (!isFullscreen) {
+            // Если не в полноэкранном режиме, проверяем изменилось ли разрешение
+            String[] dimensions = currentResolution.split("x");
+            int width = Integer.parseInt(dimensions[0]);
+            int height = Integer.parseInt(dimensions[1]);
+
+            if (width != Gdx.graphics.getWidth() || height != Gdx.graphics.getHeight()) {
+                needsReset = true;
+            }
+        }
+        return needsReset;
     }
 
     @Override
