@@ -3,6 +3,7 @@ package io.github.TheUntitledFantasyGame;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -10,9 +11,26 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 public class SettingsScreen implements Screen {
+    private final Json json;
+    private final FileHandle saveFile;
+
+
+    public void saveSettings(boolean isFullscreen) {
+        String jsonData = json.toJson(isFullscreen);
+        saveFile.writeString(jsonData, false); // false — перезаписать файл
+    }
+
+    public Boolean loadSettings() {
+        if (saveFile.exists()) {
+            String jsonData = saveFile.readString();
+            return json.fromJson(boolean.class, jsonData);
+        }
+        return null; // Если нет сохранения, возвращаем новый объект
+    }
     private final Menu game;
     private final Stage stage;
     private Skin skin;
@@ -22,6 +40,8 @@ public class SettingsScreen implements Screen {
     private boolean musicEnabled;
 
     public SettingsScreen(Menu game) {
+        json = new Json();
+        saveFile = Gdx.files.local("settings.stn");
         this.game = game;
 
         // Получаем текущие настройки из Main

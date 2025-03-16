@@ -5,6 +5,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -12,10 +13,12 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 public class Menu extends Game {
@@ -29,17 +32,65 @@ public class Menu extends Game {
     private Screen nextScreen;
     private Music backgroundMusic; // Добавляем переменную для фоновой музыки
     private BitmapFont font; // выносим шрифт на уровень класса
+    private Texture backgroundTexture; // текстура фона
+    private Texture logoTexture; // текстура логотипа
 
     @Override
     public void create() {
+
+
         // Устанавливаем полноэкранный режим
         Gdx.graphics.setFullscreenMode(Gdx.graphics.getDisplayMode());
 
         // Запрещаем изменять размер окна
         Gdx.graphics.setResizable(false);
 
+        // Загружаем и устанавливаем кастомный курсор
+        try {
+            // Загружаем изображение курсора
+            Pixmap originalCursor = new Pixmap(Gdx.files.internal("sprites/custom_cursor.png"));
+
+            // Точный масштаб 4x как вы просили
+            int scaleFactor = 4;
+            int newWidth = originalCursor.getWidth() * scaleFactor;
+            int newHeight = originalCursor.getHeight() * scaleFactor;
+
+            // Создаем новый Pixmap для масштабированного курсора
+            Pixmap scaledCursor = new Pixmap(newWidth, newHeight, Pixmap.Format.RGBA8888);
+
+            // Явно указываем прозрачность
+            for (int y = 0; y < newHeight; y++) {
+                for (int x = 0; x < newWidth; x++) {
+                    // Получаем цвет соответствующего пикселя из оригинального изображения
+                    int srcX = x / scaleFactor;
+                    int srcY = y / scaleFactor;
+                    int color = originalCursor.getPixel(srcX, srcY);
+
+                    // Устанавливаем тот же цвет в увеличенном изображении
+                    scaledCursor.drawPixel(x, y, color);
+                }
+            }
+
+            // Устанавливаем курсор с явным указанием горячей точки (0,0 - левый верхний угол)
+            Gdx.graphics.setCursor(Gdx.graphics.newCursor(scaledCursor, 0, 0));
+
+            // Выводим отладочную информацию
+            System.out.println("Установлен кастомный курсор размером " + newWidth + "x" + newHeight);
+
+            // Освобождаем ресурсы
+            originalCursor.dispose();
+            scaledCursor.dispose();
+        } catch (Exception e) {
+            System.err.println("Ошибка при установке курсора: " + e.getMessage());
+            e.printStackTrace();
+        }
+
         batch = new SpriteBatch();
         transition = new ScreenTransition(1.0f); // 1 секунда на переход
+
+        // Загрузка фона и логотипа
+        backgroundTexture = new Texture(Gdx.files.internal("sprites/Background.png"));
+        logoTexture = new Texture(Gdx.files.internal("sprites/Logo.UTLL.png"));
 
         // Загрузка и настройка фоновой музыки
         loadBackgroundMusic();
@@ -55,19 +106,14 @@ public class Menu extends Game {
         font = generator.generateFont(parameter);
         skin.add("default-font", font);
 
-        // Добавляем текстуры кнопок
-        skin.add("play_button_baton", new Texture("sprites/play_button.png"));
-        skin.add("settings_button_baton", new Texture("sprites/settings_button.png"));
-        skin.add("quit_button_baton", new Texture("sprites/quit_button.png"));
+        // Добавляем текстуры для разных состояний кнопок
+        loadButtonTextures();
 
-        // Создание кнопок
-        play_button = createButton("play_button_baton");
-        settings_button = createButton("settings_button_baton");
-        quit_button = createButton("quit_button_baton");
+        // Создание кнопок с разными состояниями
+        play_button = createButtonWithStates("play_button", "play_buttonH", "play_buttonP");
+        settings_button = createButtonWithStates("settings_button", "settings_buttonH", "settings_buttonP");
+        quit_button = createButtonWithStates("quit_button", "quit_buttonH", "quit_buttonP");
 
-        // Настройка обработчиков событий для кнопок
-
-        // Кнопка Play - переход на выбор сейва
         play_button.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -98,6 +144,24 @@ public class Menu extends Game {
         resetStage();
     }
 
+    // Метод для загрузки текстур кнопок для разных состояний
+    private void loadButtonTextures() {
+        // Нормальное состояние кнопок
+        skin.add("play_button", new Texture("sprites/play_button.png"));
+        skin.add("settings_button", new Texture("sprites/settings_button.png"));
+        skin.add("quit_button", new Texture("sprites/quit_button.png"));
+
+        // Состояние наведения (hover)
+        skin.add("play_buttonH", new Texture("sprites/play_buttonH.png"));
+        skin.add("settings_buttonH", new Texture("sprites/settings_buttonH.png"));
+        skin.add("quit_buttonH", new Texture("sprites/quit_buttonH.png"));
+
+        // Состояние нажатия (pressed)
+        skin.add("play_buttonP", new Texture("sprites/play_buttonP.png"));
+        skin.add("settings_buttonP", new Texture("sprites/settings_buttonP.png"));
+        skin.add("quit_buttonP", new Texture("sprites/quit_buttonP.png"));
+    }
+
     // Метод для пересоздания stage и его элементов
     public void resetStage() {
         // Если существующий stage есть, то освобождаем его
@@ -109,17 +173,37 @@ public class Menu extends Game {
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
 
-        // Создаем таблицу для организации UI
-        Table table = new Table();
-        table.setFillParent(true);
+        // Добавляем фоновое изображение
+        Image background = new Image(backgroundTexture);
+        background.setSize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        stage.addActor(background);
 
-        // Добавляем кнопки в таблицу с отступами
-        table.add(play_button).padBottom(20).width(600).height(150).row();
-        table.add(settings_button).padBottom(20).width(600).height(150).row();
-        table.add(quit_button).width(600).height(150);
+        // Создаем таблицу для организации UI
+        Table mainTable = new Table();
+        mainTable.setFillParent(true);
+
+
+        Image logo = new Image(logoTexture);
+        float logoWidth = Math.min(660, Gdx.graphics.getWidth() * 0.6f);
+        float logoHeight = logoWidth * logoTexture.getHeight() / logoTexture.getWidth();
+
+        // Создаем таблицу для логотипа
+        Table logoTable = new Table();
+        logoTable.add(logo).width(logoWidth).height(logoHeight);
+
+        // Создаем таблицу для кнопок
+        Table buttonTable = new Table();
+        // Добавляем кнопки в таблицу с отступами (опускаем их ниже)
+        buttonTable.add(play_button).padBottom(20).width(600).height(150).row();
+        buttonTable.add(settings_button).padBottom(20).width(600).height(150).row();
+        buttonTable.add(quit_button).width(600).height(150);
+
+        // Добавляем логотип и кнопки в основную таблицу
+        mainTable.add(logoTable).expandX().padBottom(0).row(); // Увеличиваем отступ между логотипом и кнопками
+        mainTable.add(buttonTable).expand().align(Align.center).padBottom(100); // Увеличиваем отступ снизу
 
         // Добавляем таблицу на stage
-        stage.addActor(table);
+        stage.addActor(mainTable);
     }
 
     // Метод для загрузки и настройки фоновой музыки
@@ -261,6 +345,10 @@ public class Menu extends Game {
             backgroundMusic.dispose();
         }
 
+        // Освобождаем текстуры
+        backgroundTexture.dispose();
+        logoTexture.dispose();
+
         stage.dispose();
         skin.dispose();
         batch.dispose();
@@ -306,12 +394,15 @@ public class Menu extends Game {
         return transition;
     }
 
-    private TextButton createButton(String textureName) {
+    // Обновленный метод создания кнопки с поддержкой разных состояний
+    private TextButton createButtonWithStates(String normalTexture, String hoverTexture, String pressedTexture) {
         TextButton.TextButtonStyle style = new TextButton.TextButtonStyle();
         style.font = skin.getFont("default-font");
-        style.up = skin.getDrawable(textureName);
-        style.down = skin.getDrawable(textureName);
-        style.over = skin.getDrawable(textureName);
+
+        // Устанавливаем разные текстуры для разных состояний кнопки
+        style.up = skin.getDrawable(normalTexture);    // Обычное состояние
+        style.over = skin.getDrawable(hoverTexture);   // При наведении
+        style.down = skin.getDrawable(pressedTexture); // При нажатии
 
         return new TextButton("", style);
     }
