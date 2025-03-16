@@ -30,10 +30,15 @@ public class Menu extends Game {
     private Screen nextScreen;
     private Music backgroundMusic; // Добавляем переменную для фоновой музыки
     private BitmapFont font; // выносим шрифт на уровень класса
+    private boolean resizingEnabled = false; // Флаг для контроля возможности изменения разрешения
 
     @Override
     public void create() {
+        // Устанавливаем полноэкранный режим
         Gdx.graphics.setFullscreenMode(Gdx.graphics.getDisplayMode());
+
+        // Запрещаем изменять размер окна
+        Gdx.graphics.setResizable(false);
 
         batch = new SpriteBatch();
         transition = new ScreenTransition(1.0f); // 1 секунда на переход
@@ -223,6 +228,13 @@ public class Menu extends Game {
 
     @Override
     public void resize(int width, int height) {
+        // Проверяем, разрешено ли изменение размера
+        if (!resizingEnabled) {
+            // Если изменение размера не разрешено, возвращаем прежний размер
+            // либо игнорируем изменение - libGDX все равно вызовет этот метод
+            return;
+        }
+
         // Обновляем размер viewport при изменении размера окна
         if (getScreen() != null) {
             getScreen().resize(width, height);
@@ -274,6 +286,16 @@ public class Menu extends Game {
 
     public boolean isMusicPlaying() {
         return backgroundMusic != null && backgroundMusic.isPlaying();
+    }
+
+    // Метод для контроля возможности изменения разрешения
+    public void setResizingEnabled(boolean enabled) {
+        this.resizingEnabled = enabled;
+        Gdx.graphics.setResizable(enabled);
+    }
+
+    public boolean isResizingEnabled() {
+        return resizingEnabled;
     }
 
     public SpriteBatch getBatch() {
