@@ -52,7 +52,7 @@ public class GameScreen implements Screen {
 
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
-        font.draw(batch, "Игровой экран, пока пуст, нажмите ESC дабы вернуться в меню.", 100, 150);
+        font.draw(batch, "While the game screen is blank, press ESC to return to the menu.", 100, 150);
         batch.end();
 
         // Проверка завершения анимации без потока
@@ -73,6 +73,7 @@ public class GameScreen implements Screen {
     @Override
     public void resize(int width, int height) {
         camera.setToOrtho(false, width, height);
+        System.out.println("Resized 3.0");
     }
 
     @Override

@@ -21,9 +21,6 @@ public class SettingsScreen implements Screen {
     private boolean isFullscreen;
     private boolean musicEnabled;
 
-    // Возможные варианты разрешения
-    private final String[] resolutions = {"1280x720", "1366x768", "1600x900", "1920x1080", "2560x1440", "3840x2160"};
-
     public SettingsScreen(Menu game) {
         this.game = game;
 
@@ -50,11 +47,11 @@ public class SettingsScreen implements Screen {
         mainTable.pad(20);
 
         // Заголовок экрана настроек
-        Label titleLabel = new Label("Настройки (Нажмите ESC для возврата)", skin);
+        Label titleLabel = new Label("Settings (Press ESC to return)", skin);
         titleLabel.setFontScale(1.5f);
 
         // Создаем галочку для музыки с правильным стилем
-        final CheckBox musicCheckbox = new CheckBox(" Включить музыку", skin);
+        final CheckBox musicCheckbox = new CheckBox("Turn on the music", skin);
         musicCheckbox.setChecked(musicEnabled);
 
         // Обработчик включения/выключения музыки
@@ -67,7 +64,7 @@ public class SettingsScreen implements Screen {
         });
 
         // Создаем слайдер для регулировки громкости
-        Label volumeLabel = new Label("Громкость музыки:", skin);
+        Label volumeLabel = new Label("Music Volume:", skin);
         final Slider volumeSlider = new Slider(0f, 1f, 0.01f, false, skin);
         volumeSlider.setValue(volume);
         final Label volumeValueLabel = new Label(Math.round(volume * 100) + "%", skin);
@@ -85,7 +82,7 @@ public class SettingsScreen implements Screen {
         });
 
         // Добавляем флажок для полноэкранного режима
-        final CheckBox fullscreenCheckbox = new CheckBox("Полноэкранный режим(разрешение не меняется, если включено)", skin);
+        final CheckBox fullscreenCheckbox = new CheckBox("Full screen mode(resolution does not change if enabled)", skin);
         fullscreenCheckbox.setChecked(isFullscreen);
 
         // Обработчик изменения полноэкранного режима
@@ -97,9 +94,11 @@ public class SettingsScreen implements Screen {
         });
 
         // Создаем выпадающий список для выбора разрешения
-        Label resolutionLabel = new Label("Разрешение экрана:", skin);
+        Label resolutionLabel = new Label("Screen resolution:", skin);
 
         // Конвертируем массив строк в Array<String> для SelectBox
+        // Возможные варианты разрешения
+        String[] resolutions = {"1280x720", "1366x768", "1600x900", "1920x1080", "2560x1440", "3840x2160"};
         Array<String> resolutionItems = new Array<>(resolutions);
 
         final SelectBox<String> resolutionSelect = new SelectBox<>(skin);
@@ -130,7 +129,7 @@ public class SettingsScreen implements Screen {
         });
 
         // Создаем кнопку применить с правильным стилем
-        TextButton applyButton = new TextButton("Применить", skin);
+        TextButton applyButton = new TextButton("Apply", skin);
         applyButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -220,13 +219,13 @@ public class SettingsScreen implements Screen {
             }
 
             // Вывод сообщения в консоль для подтверждения применения настроек
-            System.out.println("Настройки применены: громкость=" + volume +
-                    ", музыка включена=" + musicEnabled +
-                    ", разрешение=" + currentResolution +
-                    ", полноэкранный режим=" + isFullscreen);
+            System.out.println("Settings applied: volume=" + volume +
+                    ", is music on=" + musicEnabled +
+                    ", resolution=" + currentResolution +
+                    ", fullscreen mode=" + isFullscreen);
 
         } catch (Exception e) {
-            System.err.println("Ошибка при применении настроек: " + e.getMessage());
+            System.err.println("Error when applying settings: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -277,6 +276,7 @@ public class SettingsScreen implements Screen {
     public void resize(int width, int height) {
         // Обновляем размер viewport при изменении размера окна
         stage.getViewport().update(width, height, true);
+        System.out.println("Resized 3.0");
     }
 
     @Override

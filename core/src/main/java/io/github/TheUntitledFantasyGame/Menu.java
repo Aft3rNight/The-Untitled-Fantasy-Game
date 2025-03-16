@@ -25,12 +25,10 @@ public class Menu extends Game {
     private Stage stage;
     private SpriteBatch batch;
     private FreeTypeFontGenerator generator;
-    private FreeTypeFontParameter parameter;
     private ScreenTransition transition;
     private Screen nextScreen;
     private Music backgroundMusic; // Добавляем переменную для фоновой музыки
     private BitmapFont font; // выносим шрифт на уровень класса
-    private boolean resizingEnabled = false; // Флаг для контроля возможности изменения разрешения
 
     @Override
     public void create() {
@@ -51,7 +49,7 @@ public class Menu extends Game {
 
         // Загрузка шрифта с поддержкой кириллицы
         generator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/arial.ttf"));
-        parameter = new FreeTypeFontParameter();
+        FreeTypeFontParameter parameter = new FreeTypeFontParameter();
         parameter.size = 20;
         parameter.characters = FreeTypeFontGenerator.DEFAULT_CHARS + "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя";
         font = generator.generateFont(parameter);
@@ -137,7 +135,7 @@ public class Menu extends Game {
             // Запускаем воспроизведение
             backgroundMusic.play();
         } catch (Exception e) {
-            System.err.println("Не удалось загрузить фоновую музыку: " + e.getMessage());
+            System.err.println("Failed to load background music: " + e.getMessage());
         }
     }
 
@@ -229,18 +227,26 @@ public class Menu extends Game {
     @Override
     public void resize(int width, int height) {
         // Проверяем, разрешено ли изменение размера
+        // Флаг для контроля возможности изменения разрешения
+        boolean resizingEnabled = false;
         if (!resizingEnabled) {
             // Если изменение размера не разрешено, возвращаем прежний размер
             // либо игнорируем изменение - libGDX все равно вызовет этот метод
+            System.out.println("Resized 0.0");
+            stage.getViewport().update(width, height, true);
+            System.out.println("Resized to: " + width + "x" + height);
             return;
         }
 
         // Обновляем размер viewport при изменении размера окна
         if (getScreen() != null) {
             getScreen().resize(width, height);
+            System.out.println("Resized");
         } else {
             stage.getViewport().update(width, height, true);
+            System.out.println("Resized 2.0");
         }
+        System.out.println("Resized to: " + width + "x" + height);
     }
 
     @Override
@@ -286,16 +292,6 @@ public class Menu extends Game {
 
     public boolean isMusicPlaying() {
         return backgroundMusic != null && backgroundMusic.isPlaying();
-    }
-
-    // Метод для контроля возможности изменения разрешения
-    public void setResizingEnabled(boolean enabled) {
-        this.resizingEnabled = enabled;
-        Gdx.graphics.setResizable(enabled);
-    }
-
-    public boolean isResizingEnabled() {
-        return resizingEnabled;
     }
 
     public SpriteBatch getBatch() {
