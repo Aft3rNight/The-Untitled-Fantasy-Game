@@ -3,7 +3,6 @@ package io.github.TheUntitledFantasyGame;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -11,48 +10,26 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 public class SettingsScreen implements Screen {
-    private final Json json;
-    private final FileHandle saveFile;
-
-
-    public void saveSettings(boolean isFullscreen) {
-        String jsonData = json.toJson(isFullscreen);
-        saveFile.writeString(jsonData, false); // false — перезаписать файл
-    }
-
-    public Boolean loadSettings() {
-        if (saveFile.exists()) {
-            String jsonData = saveFile.readString();
-            return json.fromJson(boolean.class, jsonData);
-        }
-        return null; // Если нет сохранения, возвращаем новый объект
-    }
     private final Menu game;
     private final Stage stage;
     private Skin skin;
-    private float volume;
-    private String currentResolution;
-    private boolean isFullscreen;
-    private boolean musicEnabled;
+    private final GameSettings gameSettings;
+
+    // Элементы управления для настроек
+    private CheckBox musicCheckbox;
+    private Slider volumeSlider;
+    private Label volumeValueLabel;
+    private CheckBox fullscreenCheckbox;
+    private SelectBox<String> resolutionSelect;
 
     public SettingsScreen(Menu game) {
-        json = new Json();
-        saveFile = Gdx.files.local("settings.stn");
         this.game = game;
 
-        // Получаем текущие настройки из Main
-        volume = game.getMusicVolume();
-        musicEnabled = game.isMusicPlaying();
-        isFullscreen = Gdx.graphics.isFullscreen();
-
-        // Определяем текущее разрешение
-        int currentWidth = Gdx.graphics.getWidth();
-        int currentHeight = Gdx.graphics.getHeight();
-        currentResolution = currentWidth + "x" + currentHeight;
+        // Инициализируем менеджер настроек
+        this.gameSettings = new GameSettings(game);
 
         // Создаем новый Stage для этого экрана
         stage = new Stage(new ScreenViewport());
@@ -61,6 +38,40 @@ public class SettingsScreen implements Screen {
         // Создаем собственный скин с настроенным шрифтом
         createCustomSkin();
 
+        // Создаем UI экрана настроек
+        createUI();
+    }
+
+    // Создаем собственный скин с правильными настройками
+    private void createCustomSkin() {
+        skin = new Skin(Gdx.files.internal("uiskin.json"));
+
+        // Используем существующий шрифт из Main
+        BitmapFont font = game.getFont();
+        if (font != null) {
+            // Заменяем шрифт в скине на шрифт из Main
+            skin.add("default-font", font, BitmapFont.class);
+
+            // Обновляем стили, которые используют шрифт
+            Label.LabelStyle labelStyle = skin.get(Label.LabelStyle.class);
+            labelStyle.font = font;
+
+            TextButton.TextButtonStyle buttonStyle = skin.get(TextButton.TextButtonStyle.class);
+            buttonStyle.font = font;
+
+            CheckBox.CheckBoxStyle checkBoxStyle = skin.get(CheckBox.CheckBoxStyle.class);
+            checkBoxStyle.font = font;
+
+            SelectBox.SelectBoxStyle selectBoxStyle = skin.get(SelectBox.SelectBoxStyle.class);
+            selectBoxStyle.font = font;
+
+            List.ListStyle listStyle = skin.get(List.ListStyle.class);
+            listStyle.font = font;
+        }
+    }
+
+    // Создаем UI экрана настроек
+    private void createUI() {
         // Создаем основную таблицу для организации UI
         Table mainTable = new Table();
         mainTable.setFillParent(true);
@@ -71,29 +82,31 @@ public class SettingsScreen implements Screen {
         titleLabel.setFontScale(1.5f);
 
         // Создаем галочку для музыки с правильным стилем
-        final CheckBox musicCheckbox = new CheckBox("Turn on the music", skin);
-        musicCheckbox.setChecked(musicEnabled);
+        musicCheckbox = new CheckBox("Turn on the music", skin);
+        musicCheckbox.setChecked(gameSettings.isMusicEnabled());
 
         // Обработчик включения/выключения музыки
         musicCheckbox.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                musicEnabled = musicCheckbox.isChecked();
-                game.toggleMusic(musicEnabled);
+                gameSettings.setMusicEnabled(musicCheckbox.isChecked());
+                // Сразу применяем настройку музыки (без перезагрузки экрана)
+                game.toggleMusic(musicCheckbox.isChecked());
             }
         });
 
         // Создаем слайдер для регулировки громкости
         Label volumeLabel = new Label("Music Volume:", skin);
-        final Slider volumeSlider = new Slider(0f, 1f, 0.01f, false, skin);
-        volumeSlider.setValue(volume);
-        final Label volumeValueLabel = new Label(Math.round(volume * 100) + "%", skin);
+        volumeSlider = new Slider(0f, 1f, 0.01f, false, skin);
+        volumeSlider.setValue(gameSettings.getMusicVolume());
+        volumeValueLabel = new Label(Math.round(gameSettings.getMusicVolume() * 100) + "%", skin);
 
         // Обработчик изменений слайдера громкости
         volumeSlider.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                volume = volumeSlider.getValue();
+                float volume = volumeSlider.getValue();
+                gameSettings.setMusicVolume(volume);
                 volumeValueLabel.setText(Math.round(volume * 100) + "%");
 
                 // Применяем изменение громкости мгновенно
@@ -102,29 +115,31 @@ public class SettingsScreen implements Screen {
         });
 
         // Добавляем флажок для полноэкранного режима
-        final CheckBox fullscreenCheckbox = new CheckBox("Full screen mode(resolution does not change if enabled)", skin);
-        fullscreenCheckbox.setChecked(isFullscreen);
+        fullscreenCheckbox = new CheckBox("Full screen mode (resolution does not change if enabled)", skin);
+        fullscreenCheckbox.setChecked(gameSettings.isFullscreen());
 
         // Обработчик изменения полноэкранного режима
         fullscreenCheckbox.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                isFullscreen = fullscreenCheckbox.isChecked();
+                gameSettings.setFullscreen(fullscreenCheckbox.isChecked());
             }
         });
 
         // Создаем выпадающий список для выбора разрешения
         Label resolutionLabel = new Label("Screen resolution:", skin);
 
-        // Конвертируем массив строк в Array<String> для SelectBox
         // Возможные варианты разрешения
         String[] resolutions = {"1280x720", "1366x768", "1600x900", "1920x1080", "2560x1440", "3840x2160"};
         Array<String> resolutionItems = new Array<>(resolutions);
 
-        final SelectBox<String> resolutionSelect = new SelectBox<>(skin);
+        resolutionSelect = new SelectBox<>(skin);
         resolutionSelect.setItems(resolutionItems);
 
-        // Пытаемся найти текущее разрешение в списке
+        // Устанавливаем текущее разрешение
+        String currentResolution = gameSettings.getResolutionString();
+
+        // Ищем текущее разрешение в списке
         boolean foundResolution = false;
         for (String res : resolutions) {
             if (res.equals(currentResolution)) {
@@ -137,23 +152,37 @@ public class SettingsScreen implements Screen {
         // Если текущее разрешение не найдено в списке, выбираем ближайшее
         if (!foundResolution) {
             resolutionSelect.setSelected("1920x1080"); // По умолчанию
-            currentResolution = "1920x1080";
+            gameSettings.setResolution("1920x1080");
         }
 
         // Обработчик изменения разрешения
         resolutionSelect.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                currentResolution = resolutionSelect.getSelected();
+                String selectedResolution = resolutionSelect.getSelected();
+                gameSettings.setResolution(selectedResolution);
             }
         });
 
-        // Создаем кнопку применить с правильным стилем
+        // Создаем кнопку "Применить"
         TextButton applyButton = new TextButton("Apply", skin);
+
+        // Обработчик кнопки "Применить" - теперь включает и сохранение, и применение
         applyButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                applySettings();
+                // Сначала сохраняем настройки
+                gameSettings.saveSettings();
+
+                // Затем применяем их
+                boolean screenChanged = gameSettings.applySettings();
+
+                // Если изменились настройки экрана, нужно обновить viewport
+                if (screenChanged) {
+                    stage.getViewport().update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
+                }
+
+                System.out.println("Settings saved and applied");
             }
         });
 
@@ -186,89 +215,6 @@ public class SettingsScreen implements Screen {
         stage.addActor(mainTable);
     }
 
-    // Создаем собственный скин с правильными настройками
-    private void createCustomSkin() {
-        skin = new Skin(Gdx.files.internal("uiskin.json"));
-
-        // Используем существующий шрифт из Main
-        BitmapFont font = game.getFont();
-        if (font != null) {
-            // Заменяем шрифт в скине на шрифт из Main
-            skin.add("default-font", font, BitmapFont.class);
-
-            // Обновляем стили, которые используют шрифт
-            Label.LabelStyle labelStyle = skin.get(Label.LabelStyle.class);
-            labelStyle.font = font;
-
-            TextButton.TextButtonStyle buttonStyle = skin.get(TextButton.TextButtonStyle.class);
-            buttonStyle.font = font;
-
-            CheckBox.CheckBoxStyle checkBoxStyle = skin.get(CheckBox.CheckBoxStyle.class);
-            checkBoxStyle.font = font;
-
-            SelectBox.SelectBoxStyle selectBoxStyle = skin.get(SelectBox.SelectBoxStyle.class);
-            selectBoxStyle.font = font;
-
-            List.ListStyle listStyle = skin.get(List.ListStyle.class);
-            listStyle.font = font;
-        }
-    }
-
-    // Метод для применения настроек
-    private void applySettings() {
-        try {
-            // Сохраняем настройки громкости и состояние музыки
-            game.setMusicVolume(volume);
-            game.toggleMusic(musicEnabled);
-
-            boolean needsReset = isNeedsReset();
-
-            // Применяем изменения если они нужны
-            if (needsReset) {
-                if (isFullscreen) {
-                    Gdx.graphics.setFullscreenMode(Gdx.graphics.getDisplayMode());
-                } else {
-                    String[] dimensions = currentResolution.split("x");
-                    int width = Integer.parseInt(dimensions[0]);
-                    int height = Integer.parseInt(dimensions[1]);
-                    Gdx.graphics.setWindowedMode(width, height);
-                }
-
-                // После применения настроек нужно правильно обновить stage
-                stage.getViewport().update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
-            }
-
-            // Вывод сообщения в консоль для подтверждения применения настроек
-            System.out.println("Settings applied: volume=" + volume +
-                    ", is music on=" + musicEnabled +
-                    ", resolution=" + currentResolution +
-                    ", fullscreen mode=" + isFullscreen);
-
-        } catch (Exception e) {
-            System.err.println("Error when applying settings: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    private boolean isNeedsReset() {
-        boolean needsReset = false;
-
-        // Проверяем нужно ли менять разрешение или режим экрана
-        if (isFullscreen != Gdx.graphics.isFullscreen()) {
-            needsReset = true;
-        } else if (!isFullscreen) {
-            // Если не в полноэкранном режиме, проверяем изменилось ли разрешение
-            String[] dimensions = currentResolution.split("x");
-            int width = Integer.parseInt(dimensions[0]);
-            int height = Integer.parseInt(dimensions[1]);
-
-            if (width != Gdx.graphics.getWidth() || height != Gdx.graphics.getHeight()) {
-                needsReset = true;
-            }
-        }
-        return needsReset;
-    }
-
     @Override
     public void show() {
         // Метод вызывается при отображении экрана
@@ -296,7 +242,7 @@ public class SettingsScreen implements Screen {
     public void resize(int width, int height) {
         // Обновляем размер viewport при изменении размера окна
         stage.getViewport().update(width, height, true);
-        System.out.println("Resized 3.0");
+        System.out.println("Settings screen resized to: " + width + "x" + height);
     }
 
     @Override
