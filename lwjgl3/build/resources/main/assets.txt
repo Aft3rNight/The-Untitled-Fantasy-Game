@@ -1,0 +1,17 @@
+fonts/arial.ttf
+game.settings
+libgdx.png
+music/test_sound.mp3
+sprites/Background.png
+sprites/Logo.UTLL.png
+sprites/Logo.UTLL.png.pxo
+sprites/custom_cursor.png
+sprites/play_button.png
+sprites/play_buttonH.png
+sprites/play_buttonP.png
+sprites/quit_button.png
+sprites/quit_buttonH.png
+sprites/quit_buttonP.png
+sprites/settings_button.png
+sprites/settings_buttonH.png
+sprites/settings_buttonP.png

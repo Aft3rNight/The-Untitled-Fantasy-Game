@@ -4,7 +4,9 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
@@ -17,6 +19,10 @@ public class SettingsScreen implements Screen {
     private final Stage stage;
     private Skin skin;
     private final GameSettings gameSettings;
+
+    // Добавляем текстуру для фона и SpriteBatch для её отрисовки
+    private Texture backgroundTexture;
+    private SpriteBatch batch;
 
     // Элементы управления для настроек
     private CheckBox musicCheckbox;
@@ -34,6 +40,12 @@ public class SettingsScreen implements Screen {
         // Создаем новый Stage для этого экрана
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
+
+        // Инициализируем SpriteBatch для отрисовки фона
+        batch = new SpriteBatch();
+
+        // Загружаем текстуру фона
+        backgroundTexture = new Texture(Gdx.files.internal("sprites/Background.png"));
 
         // Создаем собственный скин с настроенным шрифтом
         createCustomSkin();
@@ -233,6 +245,12 @@ public class SettingsScreen implements Screen {
         Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        // Отрисовка фона
+        batch.begin();
+        // Растягиваем изображение на весь экран
+        batch.draw(backgroundTexture, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        batch.end();
+
         // Обновление и отрисовка stage
         stage.act(delta);
         stage.draw();
@@ -264,6 +282,8 @@ public class SettingsScreen implements Screen {
     public void dispose() {
         // Освобождаем ресурсы
         stage.dispose();
+        batch.dispose();
+        backgroundTexture.dispose();
         // Не освобождаем skin здесь, поскольку он использует шрифты из Main
     }
 }

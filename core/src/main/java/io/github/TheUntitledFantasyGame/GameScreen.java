@@ -52,7 +52,7 @@ public class GameScreen implements Screen {
 
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
-        font.draw(batch, "While the game screen is blank, press ESC to return to the menu.", 100, 150);
+        font.draw(batch, "The game screen is empty for now, press ESC to return to the menu.", 100, 150);
         batch.end();
 
         // Проверка завершения анимации без потока

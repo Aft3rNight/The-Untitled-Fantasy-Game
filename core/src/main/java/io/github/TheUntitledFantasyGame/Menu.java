@@ -43,8 +43,7 @@ public class Menu extends Game {
 
         try {
             // Загружаем изображение курсора
-            Pixmap originalCursor = new Pixmap(Gdx.files.internal("sprites/play_button.png")); // AFTERNIGHT COMMIT TEXTURES
-            // Точный масштаб 4x как вы просили
+            Pixmap originalCursor = new Pixmap(Gdx.files.internal("sprites/custom_cursor.png")); // AFTERNIGHT COMMIT TEXTURES (Afternight: No.)
             int scaleFactor = 4;
             int newWidth = originalCursor.getWidth() * scaleFactor;
             int newHeight = originalCursor.getHeight() * scaleFactor;
@@ -102,9 +101,9 @@ public class Menu extends Game {
 
         loadButtonTextures();
 
-        play_button = createButtonWithStates("play_button", "play_button", "play_button"); // AFTERNIGHT COMMIT TEXTURES
-        settings_button = createButtonWithStates("settings_button", "settings_button", "settings_button"); // AFTERNIGHT COMMIT TEXTURES
-        quit_button = createButtonWithStates("quit_button", "quit_button", "quit_button"); // AFTERNIGHT COMMIT TEXTURES
+        play_button = createButtonWithStates("play_button", "play_buttonH", "play_buttonP");
+        settings_button = createButtonWithStates("settings_button", "settings_buttonH", "settings_buttonP");
+        quit_button = createButtonWithStates("quit_button", "quit_buttonH", "quit_buttonP");
 
         play_button.addListener(new ClickListener() {
             @Override
@@ -136,13 +135,13 @@ public class Menu extends Game {
         skin.add("settings_button", new Texture("sprites/settings_button.png"));
         skin.add("quit_button", new Texture("sprites/quit_button.png"));
 
-        skin.add("play_buttonH", new Texture("sprites/play_button.png")); // AFTERNIGHT COMMIT TEXTURES
-        skin.add("settings_buttonH", new Texture("sprites/settings_button.png")); // AFTERNIGHT COMMIT TEXTURES
-        skin.add("quit_buttonH", new Texture("sprites/quit_button.png")); // AFTERNIGHT COMMIT TEXTURES
+        skin.add("play_buttonH", new Texture("sprites/play_buttonH.png")); // AFTERNIGHT COMMIT TEXTURES
+        skin.add("settings_buttonH", new Texture("sprites/settings_buttonH.png")); // AFTERNIGHT COMMIT TEXTURES
+        skin.add("quit_buttonH", new Texture("sprites/quit_buttonH.png")); // AFTERNIGHT COMMIT TEXTURES
 
-        skin.add("play_buttonP", new Texture("sprites/play_button.png")); // AFTERNIGHT COMMIT TEXTURES
-        skin.add("settings_buttonP", new Texture("sprites/settings_button.png")); // AFTERNIGHT COMMIT TEXTURES
-        skin.add("quit_buttonP", new Texture("sprites/quit_button.png")); // AFTERNIGHT COMMIT TEXTURES
+        skin.add("play_buttonP", new Texture("sprites/play_buttonP.png")); // AFTERNIGHT COMMIT TEXTURES
+        skin.add("settings_buttonP", new Texture("sprites/settings_buttonP.png")); // AFTERNIGHT COMMIT TEXTURES
+        skin.add("quit_buttonP", new Texture("sprites/quit_buttonP.png")); // AFTERNIGHT COMMIT TEXTURES
     }
 
     public void resetStage() {
